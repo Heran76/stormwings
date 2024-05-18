@@ -94,6 +94,14 @@ body {
     height: 28px;
 }
 
+.empty-life {
+    background-image: none;
+    width: 20px;
+    height: 20px;
+    background-size: cover;
+    position: absolute;
+}
+
 #game-over {
     transform: translate(-50%, -50%);
     position: absolute;
