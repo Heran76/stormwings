@@ -108,9 +108,4 @@ body{
     position: absolute;
 }
 
-.enemyBullet {
-    width: 5px;
-    height: 10px;
-    background-color: red;
-    position: absolute;
-}
+

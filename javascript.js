@@ -1,5 +1,5 @@
 var score = 0;
-var hero = { x: 500, y: 450 };
+var hero = {x: 500, y: 450};
 var enemies = [];
 var bullets = [];
 var enemyBullets = [];
@@ -69,7 +69,7 @@ function displayExplosions() {
 }
 
 function spawnEnemies() {
-    enemies.push({ x: (Math.random() * 600) + 200, y: 0, type: Math.floor(Math.random() * 2) });
+    enemies.push({x: (Math.random() * 600) + 200, y: 0, type: Math.floor(Math.random() * 2)});
     clearInterval(enemyInterval);
     enemyInterval = setInterval(spawnEnemies, (Math.random() * 3000) + level);
     level *= 0.8;
@@ -156,4 +156,84 @@ function detectEnemyBulletCollision() {
 function detectPlayerCollision() {
     for (var i = 0; i < enemies.length; i++) {
         if (Math.abs(enemies[i].x - hero.x) < 40 && Math.abs(enemies[i].y - hero.y) < 40) {
-           
+            var audio = new Audio("sounds/hit-01.wav");
+            audio.play();
+            killEnemy(i);
+            score -= 50;
+            lives--;
+        }
+    }
+}
+
+function killEnemy(index) {
+    explosions.push({x: enemies[index].x, y: enemies[index].y, state: 0});
+    enemies.splice(index, 1);
+}
+
+function enemyShoot() {
+    for (var i = 0; i < enemies.length; i++) {
+        if (Math.random() < 0.02) { // Ajusta la probabilidad de disparo según sea necesario
+            enemyBullets.push({x: enemies[i].x + 11, y: enemies[i].y + 15}); // Ajusta las coordenadas iniciales del disparo del enemigo
+        }
+    }
+}
+
+document.onkeydown = function(e) {
+    if (lives > 0) {
+        if ((e.keyCode == 32 || (e.keyCode <= 40 && e.keyCode >= 37)) && background.paused) {
+            start();
+        }
+        switch (e.keyCode) {
+            case 37:
+                document.getElementById("hero").style.backgroundPosition = "-55px -205px";
+                if (hero.x > 10) hero.x -= 10;
+                break;
+            case 39:
+                document.getElementById("hero").style.backgroundPosition = "-110px -205px";
+                if (hero.x < 970) hero.x += 10;
+                break;
+            case 40:
+                document.getElementById("hero").style.backgroundPosition = "-85px -230px";
+                if (hero.y < 520) hero.y += 10;
+                break;
+            case 38:
+                document.getElementById("hero").style.backgroundPosition = "-85px -180px";
+                if (hero.y > 10) hero.y -= 10;
+                break;
+            case 32:
+                document.getElementById("hero").style.backgroundPosition = "-85px -180px";
+                var audio = new Audio("sounds/gun-shot.mp3");
+                audio.play();
+                bullets.push({x: hero.x + 8, y: hero.y - 15});
+                displayBullets();
+                break;
+        }
+    }
+}
+
+function gameLoop() {
+    if (lives > 0) {
+        displayHero();
+        moveEnemies();
+        displayEnemies();
+        moveBullets();
+        displayBullets();
+        moveEnemyBullets();
+        displayEnemyBullets();
+        detectCollision();
+        detectPlayerCollision();
+        detectEnemyBulletCollision();
+        displayScore();
+        displayExplosions();
+        displayLives();
+        enemyShoot();
+    } else {
+        clearInterval(interval);
+        background.pause();
+        var audio = new Audio("sounds/explosion.wav");
+        audio.play();
+        document.getElementById("game-over").style.display = "block";
+        document.getElementById("score").style.display = "none";
+        document.getElementById("game-over").innerText = "Fin de la partida! Puntos: " + score;
+    }
+}
