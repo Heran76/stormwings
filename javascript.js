@@ -1,3 +1,4 @@
+// Variables iniciales y constantes
 var score = 0;
 var hero = {x: 500, y: 450};
 var enemies = [];
@@ -12,6 +13,7 @@ var level = 5000;
 var background = new Audio("sounds/background.mp3");
 var interval = null;
 
+// Funciones principales
 function start() {
     background.volume = 0.5;
     background.loop = true;
@@ -107,7 +109,7 @@ function displayBullets() {
 function moveEnemyBullets() {
     for (var i = 0; i < enemyBullets.length; i++) {
         enemyBullets[i].y += 5;
-        if (enemyBullets[i].y > 600) { // Ajusta según el límite inferior de tu pantalla
+        if (enemyBullets[i].y > 600) {
             enemyBullets.splice(i, 1);
         }
     }
@@ -148,6 +150,7 @@ function detectEnemyBulletCollision() {
             lives--;
             if (lives <= 0) {
                 lives = 0; // Asegura que las vidas no bajen de 0
+                endGame();
             }
         }
     }
@@ -161,6 +164,10 @@ function detectPlayerCollision() {
             killEnemy(i);
             score -= 50;
             lives--;
+            if (lives <= 0) {
+                lives = 0; // Asegura que las vidas no bajen de 0
+                endGame();
+            }
         }
     }
 }
@@ -172,8 +179,8 @@ function killEnemy(index) {
 
 function enemyShoot() {
     for (var i = 0; i < enemies.length; i++) {
-        if (Math.random() < 0.02) { // Ajusta la probabilidad de disparo según sea necesario
-            enemyBullets.push({x: enemies[i].x + 11, y: enemies[i].y + 15}); // Ajusta las coordenadas iniciales del disparo del enemigo
+        if (Math.random() < 0.02) {
+            enemyBullets.push({x: enemies[i].x + 11, y: enemies[i].y + 15});
         }
     }
 }
@@ -211,6 +218,53 @@ document.onkeydown = function(e) {
     }
 }
 
+// Manejo de pantalla táctil para la versión móvil
+document.addEventListener("touchstart", function(e) {
+    if (lives > 0) {
+        var touch = e.touches[0];
+        var startX = touch.clientX;
+        var startY = touch.clientY;
+
+        document.addEventListener("touchmove", function(e) {
+            if (lives > 0) {
+                var touch = e.touches[0];
+                var dx = touch.clientX - startX;
+                var dy = touch.clientY - startY;
+
+                // Mueve el héroe basado en la diferencia de la posición de toque
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    // Movimiento horizontal
+                    if (dx > 0 && hero.x < 970) {
+                        hero.x += 10; // Mover a la derecha
+                        document.getElementById("hero").style.backgroundPosition = "-110px -205px";
+                    } else if (dx < 0 && hero.x > 0) {
+                        hero.x -= 10; // Mover a la izquierda
+                        document.getElementById("hero").style.backgroundPosition = "-75px -205px";
+                    }
+                } else {
+                    // Movimiento vertical
+                    if (dy > 0 && hero.y < 520) {
+                        hero.y += 10; // Mover hacia abajo
+                        document.getElementById("hero").style.backgroundPosition = "-85px -230px";
+                    } else if (dy < 0 && hero.y > 0) {
+                        hero.y -= 10; // Mover hacia arriba
+                        document.getElementById("hero").style.backgroundPosition = "-85px -180px";
+                    }
+                }
+
+                startX = touch.clientX;
+                startY = touch.clientY;
+                displayHero();
+            }
+        }, { passive: true });
+
+        document.addEventListener("touchend", function(e) {
+            document.removeEventListener("touchmove", null);
+            document.removeEventListener("touchend", null);
+        });
+    }
+});
+
 function gameLoop() {
     if (lives > 0) {
         displayHero();
@@ -228,12 +282,17 @@ function gameLoop() {
         displayLives();
         enemyShoot();
     } else {
-        clearInterval(interval);
-        background.pause();
-        var audio = new Audio("sounds/explosion.wav");
-        audio.play();
-        document.getElementById("game-over").style.display = "block";
-        document.getElementById("score").style.display = "none";
-        document.getElementById("game-over").innerText = "Fin de la partida! Puntos: " + score;
+        endGame();
     }
 }
+
+function endGame() {
+    clearInterval(interval);
+    background.pause();
+    var audio = new Audio("sounds/explosion.wav");
+    audio.play();
+    document.getElementById("game-over").style.display = "block";
+    document.getElementById("score").style.display = "none";
+    document.getElementById("game-over").innerText = "Fin de la partida! Puntos: " + score;
+}
+
