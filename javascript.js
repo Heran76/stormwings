@@ -1,5 +1,5 @@
 var score = 0;
-var hero = {x: 500, y: 450};
+var hero = { x: 500, y: 450 };
 var enemies = [];
 var bullets = [];
 var enemyBullets = [];
@@ -13,7 +13,7 @@ var background = new Audio("sounds/background.mp3");
 var interval = null;
 
 function start() {
-    background.volume = 0.2;
+    background.volume = 0.5;
     background.loop = true;
     background.play();
     interval = setInterval(gameLoop, 20);
@@ -69,7 +69,7 @@ function displayExplosions() {
 }
 
 function spawnEnemies() {
-    enemies.push({x: (Math.random() * 600) + 200, y: 0, type: Math.floor(Math.random() * 2)});
+    enemies.push({ x: (Math.random() * 600) + 200, y: 0, type: Math.floor(Math.random() * 2) });
     clearInterval(enemyInterval);
     enemyInterval = setInterval(spawnEnemies, (Math.random() * 3000) + level);
     level *= 0.8;
@@ -166,14 +166,14 @@ function detectPlayerCollision() {
 }
 
 function killEnemy(index) {
-    explosions.push({x: enemies[index].x, y: enemies[index].y, state: 0});
+    explosions.push({ x: enemies[index].x, y: enemies[index].y, state: 0 });
     enemies.splice(index, 1);
 }
 
 function enemyShoot() {
     for (var i = 0; i < enemies.length; i++) {
         if (Math.random() < 0.02) { // Ajusta la probabilidad de disparo según sea necesario
-            enemyBullets.push({x: enemies[i].x + 11, y: enemies[i].y + 15}); // Ajusta las coordenadas iniciales del disparo del enemigo
+            enemyBullets.push({ x: enemies[i].x + 11, y: enemies[i].y + 15 }); // Ajusta las coordenadas iniciales del disparo del enemigo
         }
     }
 }
@@ -204,12 +204,38 @@ document.onkeydown = function(e) {
                 document.getElementById("hero").style.backgroundPosition = "-85px -180px";
                 var audio = new Audio("sounds/gun-shot.mp3");
                 audio.play();
-                bullets.push({x: hero.x + 8, y: hero.y - 15});
+                bullets.push({ x: hero.x + 8, y: hero.y - 15 });
                 displayBullets();
                 break;
         }
     }
 }
+
+// Agregar eventos táctiles para dispositivos móviles
+document.addEventListener('touchstart', function(e) {
+    if (lives > 0) {
+        if (background.paused) {
+            start();
+        }
+        var touch = e.touches[0];
+        var touchX = touch.clientX;
+        var touchY = touch.clientY;
+
+        // Mover héroe basado en la posición del toque
+        if (touchX < window.innerWidth / 2) {
+            if (hero.x > 10) hero.x -= 10;
+        } else {
+            if (hero.x < 970) hero.x += 10;
+        }
+
+        // Disparar al tocar
+        document.getElementById("hero").style.backgroundPosition = "-85px -180px";
+        var audio = new Audio("sounds/gun-shot.mp3");
+        audio.play();
+        bullets.push({ x: hero.x + 8, y: hero.y - 15 });
+        displayBullets();
+    }
+});
 
 function gameLoop() {
     if (lives > 0) {
@@ -221,8 +247,8 @@ function gameLoop() {
         moveEnemyBullets();
         displayEnemyBullets();
         detectCollision();
-        detectPlayerCollision();
         detectEnemyBulletCollision();
+        detectPlayerCollision();
         displayScore();
         displayExplosions();
         displayLives();
