@@ -12,6 +12,8 @@ var level = 5000;
 
 var background = new Audio("sounds/background.mp3");
 var interval = null;
+var autoShootInterval = null;
+var isMobile = 'ontouchstart' in document.documentElement;
 
 // Funciones principales
 function start() {
@@ -19,6 +21,9 @@ function start() {
     background.loop = true;
     background.play();
     interval = setInterval(gameLoop, 20);
+    if (isMobile) {
+        autoShootInterval = setInterval(autoShoot, 500);
+    }
 }
 
 function displayHero() {
@@ -218,81 +223,85 @@ document.onkeydown = function(e) {
     }
 }
 
-// Manejo de pantalla táctil para la versión móvil
-document.addEventListener("touchstart", function(e) {
-    if (lives > 0) {
-        var touch = e.touches[0];
-        var startX = touch.clientX;
-        var startY = touch.clientY;
-
-        document.addEventListener("touchmove", function(e) {
-            if (lives > 0) {
-                var touch = e.touches[0];
-                var dx = touch.clientX - startX;
-                var dy = touch.clientY - startY;
-
-                // Mueve el héroe basado en la diferencia de la posición de toque
-                if (Math.abs(dx) > Math.abs(dy)) {
-                    // Movimiento horizontal
-                    if (dx > 0 && hero.x < 970) {
-                        hero.x += 10; // Mover a la derecha
-                        document.getElementById("hero").style.backgroundPosition = "-110px -205px";
-                    } else if (dx < 0 && hero.x > 0) {
-                        hero.x -= 10; // Mover a la izquierda
-                        document.getElementById("hero").style.backgroundPosition = "-75px -205px";
-                    }
-                } else {
-                    // Movimiento vertical
-                    if (dy > 0 && hero.y < 520) {
-                        hero.y += 10; // Mover hacia abajo
-                        document.getElementById("hero").style.backgroundPosition = "-85px -230px";
-                    } else if (dy < 0 && hero.y > 0) {
-                        hero.y -= 10; // Mover hacia arriba
-                        document.getElementById("hero").style.backgroundPosition = "-85px -180px";
-                    }
-                }
-
-                startX = touch.clientX;
-                startY = touch.clientY;
-                displayHero();
-            }
-        }, { passive: true });
-
-        document.addEventListener("touchend", function(e) {
-            document.removeEventListener("touchmove", null);
-            document.removeEventListener("touchend", null);
-        });
+// Manejo de pantalla táctil
+document.addEventListener('touchstart', function(e) {
+    if (lives > 0 && background.paused) {
+        start();
     }
+    var touch = e.touches[0];
+    var touchX = touch.clientX;
+    var touchY = touch.clientY;
+    hero.x = touchX - 25;
+    hero.y = touchY - 25;
 });
 
-function gameLoop() {
+document.addEventListener('touchmove', function(e) {
+    var touch = e.touches[0];
+    var touchX = touch.clientX;
+    var touchY = touch.clientY;
+    hero.x = touchX - 25;
+    hero.y = touchY - 25;
+});
+
+function autoShoot() {
     if (lives > 0) {
-        displayHero();
-        moveEnemies();
-        displayEnemies();
-        moveBullets();
+        var audio = new Audio("sounds/gun-shot.mp3");
+        audio.play();
+        bullets.push({x: hero.x + 8, y: hero.y - 15});
         displayBullets();
-        moveEnemyBullets();
-        displayEnemyBullets();
-        detectCollision();
-        detectPlayerCollision();
-        detectEnemyBulletCollision();
-        displayScore();
-        displayExplosions();
-        displayLives();
-        enemyShoot();
-    } else {
-        endGame();
     }
 }
 
+// Final del juego
 function endGame() {
-    clearInterval(interval);
     background.pause();
-    var audio = new Audio("sounds/explosion.wav");
-    audio.play();
-    document.getElementById("game-over").style.display = "block";
-    document.getElementById("score").style.display = "none";
-    document.getElementById("game-over").innerText = "Fin de la partida! Puntos: " + score;
+    clearInterval(interval);
+    if (autoShootInterval) {
+        clearInterval(autoShootInterval);
+    }
+    alert("Game Over! Your score is " + score);
+    resetGame();
 }
 
+function resetGame() {
+    score = 0;
+    hero = {x: 500, y: 450};
+    enemies = [];
+    bullets = [];
+    enemyBullets = [];
+    explosions = [];
+    lives = 5;
+    level = 5000;
+    displayHero();
+    displayLives();
+    displayScore();
+}
+
+// Bucle principal del juego
+function gameLoop() {
+    moveEnemies();
+    moveBullets();
+    moveEnemyBullets();
+    displayEnemies();
+    displayBullets();
+    displayEnemyBullets();
+    displayExplosions();
+    displayHero();
+    displayLives();
+    displayScore();
+    detectCollision();
+    detectEnemyBulletCollision();
+    detectPlayerCollision();
+    enemyShoot();
+}
+
+// Inicia el juego al cargar la página
+window.onload = function() {
+    displayHero();
+    displayLives();
+    displayScore();
+    alert("Press 'Space' or tap the screen to start the game.");
+}
+
+
+    
