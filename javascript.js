@@ -300,7 +300,7 @@ window.onload = function() {
     displayHero();
     displayLives();
     displayScore();
-    alert("Press 'Space' or tap the screen to start the game.");
+    alert("Presiona 'Espacio' o toca la pantalla para iniciar el juego. <br> Press 'Space' or tap the screen to start the game.");
 }
 
 
